@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Search, Compass, BookOpen, Layers, Star, Users as UsersIcon, Clock, User } from "lucide-react";
+import { Search, Compass, BookOpen, Layers, Star, Users as UsersIcon, Clock, User, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ interface Category {
   slug: string;
 }
 
-export default function CoursesPage() {
+function CoursesContent() {
   const searchParams = useSearchParams();
   const initialFilter = searchParams.get("filter") || ""; // e.g. "bookmarked"
 
@@ -226,5 +226,17 @@ export default function CoursesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CoursesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <CoursesContent />
+    </Suspense>
   );
 }

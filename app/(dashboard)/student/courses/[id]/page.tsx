@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -54,7 +54,7 @@ interface CourseDetails {
   category: string;
 }
 
-export default function CourseDetailPage() {
+function CourseDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -701,5 +701,17 @@ export default function CourseDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CourseDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <CourseDetailContent />
+    </Suspense>
   );
 }

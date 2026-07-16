@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -99,7 +99,7 @@ function parseBoldText(text: string) {
   return parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="font-extrabold text-slate-900 dark:text-white">{part}</strong> : part));
 }
 
-export default function AiToolsPage() {
+function AiToolsContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "chat";
 
@@ -1356,5 +1356,17 @@ export default function AiToolsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AiToolsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <AiToolsContent />
+    </Suspense>
   );
 }
