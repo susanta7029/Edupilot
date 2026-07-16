@@ -1,0 +1,223 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+model User {
+  id              String           @id @default(uuid())
+  name            String
+  email           String           @unique
+  password        String
+  role            Role             @default(STUDENT)
+  avatar          String?          
+  skills          String[]         @default([])
+  careerGoal      String?
+  studyTime       Int              @default(0) // in minutes
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  progress        Progress[]
+  bookmarks       Bookmark[]
+  quizHistory     QuizHistory[]
+  chatHistory     ChatHistory[]
+  roadmaps        CareerRoadmap[]
+  submissions     AssignmentSubmission[]
+  certificates    Certificate[]
+  notifications   Notification[]
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  courses     Course[]
+}
+
+model Course {
+  id            String     @id @default(uuid())
+  title         String
+  subtitle      String?    // Subtitle description tag
+  description   String     @db.Text
+  thumbnail     String?
+  banner        String?    // Full banner image URL
+  instructor    String     @default("Sarah Johnson")
+  duration      String     @default("20 Hours")
+  level         String     @default("Intermediate")
+  rating        Float      @default(4.8)
+  enrolledCount Int        @default(150)
+  price         Float      @default(0.0) // Dummy course price for SaaS/revenue metrics
+  tags          String[]   @default([])
+  status        String     @default("PUBLISHED") // PUBLISHED, DRAFT, ARCHIVED
+  publishedAt   DateTime?  @default(now())
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  lessons       Lesson[]
+  resources     Resource[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  assignments   Assignment[]
+  certificates  Certificate[]
+  quizzes       QuizQuestion[]
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  title       String
+  description String?    @db.Text
+  content     String     @db.Text
+  duration    String     @default("15 mins")
+  youtubeUrl  String?
+  pdfUrl      String?
+  quiz        Json?      // Embedded lesson quiz (fallback)
+  courseId    String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order       Int
+  progress    Progress[]
+  bookmarks   Bookmark[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  quizzes     QuizQuestion[]
+}
+
+model Progress {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed   Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, lessonId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+}
+
+model QuizHistory {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score          Int
+  totalQuestions Int
+  topic          String
+  createdAt      DateTime @default(now())
+}
+
+model ChatHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String   @db.Text
+  response  String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model CareerRoadmap {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  steps     Json     // Array of steps [{title, desc, duration, status}]
+  createdAt DateTime @default(now())
+}
+
+model Resource {
+  id        String   @id @default(uuid())
+  title     String
+  fileUrl   String
+  type      String   // "pdf", "link", "video"
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  title       String   @unique
+  description String
+  icon        String
+  createdAt   DateTime @default(now())
+}
+
+model QuizQuestion {
+  id           String   @id @default(uuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId     String?
+  lesson       Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  question     String   @db.Text
+  options      String[]
+  answer       String
+  explanation  String   @db.Text
+  difficulty   String   @default("Medium")
+  marks        Int      @default(5)
+  timeLimit    Int      @default(10) // in minutes
+  createdAt    DateTime @default(now())
+}
+
+model Assignment {
+  id          String                 @id @default(uuid())
+  title       String
+  description String                 @db.Text
+  deadline    DateTime
+  fileUrl     String?
+  courseId    String
+  course      Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+  createdAt   DateTime               @default(now())
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  fileUrl      String
+  submittedAt  DateTime   @default(now())
+  marks        Int?
+  feedback     String?    @db.Text
+  status       String     @default("PENDING") // PENDING, GRADED
+}
+
+model Certificate {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  certificateId String   @unique
+  issuedAt      DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?  // Null means it is a global announcement
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
