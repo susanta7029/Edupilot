@@ -57,8 +57,20 @@ function LoginForm() {
         toast(res.error, "error");
       } else {
         toast("Welcome back to EduPilot AI!", "success");
-        router.push(callbackUrl);
-        router.refresh();
+        
+        // Extract relative path from callbackUrl if it's absolute
+        let targetUrl = callbackUrl;
+        if (targetUrl.startsWith("http")) {
+          try {
+            const urlObj = new URL(targetUrl);
+            targetUrl = urlObj.pathname + urlObj.search;
+          } catch (e) {}
+        }
+        
+        // Force a full page reload so middleware catches the new NextAuth cookies
+        setTimeout(() => {
+          window.location.replace(targetUrl);
+        }, 800);
       }
     } catch (err: any) {
       toast(err?.message || "An unexpected error occurred", "error");
