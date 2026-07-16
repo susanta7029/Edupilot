@@ -4,15 +4,21 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import type { Session } from "next-auth";
 import { Compass, LayoutDashboard, LogOut, Menu, User as UserIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 
+function getSessionUser(session: Session | null | undefined) {
+  return session?.user ?? null;
+}
+
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
+  const user = getSessionUser(session);
 
   const menuItems = [
     { label: "Features", href: "/#features", publicOnly: true },
@@ -61,19 +67,19 @@ export function Navbar() {
 
           {status === "loading" ? (
             <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
-          ) : session ? (
+          ) : user ? (
             <div className="flex items-center gap-4">
-              <Link href={session.user.role === "ADMIN" ? "/admin" : "/student"}>
+              <Link href={user.role === "ADMIN" ? "/admin" : "/student"}>
                 <Button size="sm" variant="outline" className="flex items-center gap-1.5">
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Button>
               </Link>
               <div className="flex items-center gap-2 pl-2 border-l dark:border-slate-800">
-                {session.user.image || (session.user as any).avatar ? (
+                {user.image || (user as any).avatar ? (
                   <img
-                    src={session.user.image || (session.user as any).avatar}
-                    alt={session.user.name || "User"}
+                    src={user.image || (user as any).avatar}
+                    alt={user.name || "User"}
                     className="h-8 w-8 rounded-full border bg-slate-100 object-cover"
                   />
                 ) : (
@@ -83,10 +89,10 @@ export function Navbar() {
                 )}
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-semibold leading-none max-w-[100px] truncate">
-                    {session.user.name}
+                    {user.name}
                   </span>
                   <span className="text-[10px] text-muted-foreground capitalize">
-                    {session.user.role?.toLowerCase()}
+                    {user.role?.toLowerCase()}
                   </span>
                 </div>
                 <button
@@ -150,13 +156,13 @@ export function Navbar() {
                   )
               )}
 
-              {session ? (
+              {user ? (
                 <div className="flex flex-col gap-3 pt-3 border-t dark:border-slate-800">
                   <div className="flex items-center gap-3">
-                    {session.user.image || (session.user as any).avatar ? (
+                    {user.image || (user as any).avatar ? (
                       <img
-                        src={session.user.image || (session.user as any).avatar}
-                        alt={session.user.name || "User"}
+                        src={user.image || (user as any).avatar}
+                        alt={user.name || "User"}
                         className="h-9 w-9 rounded-full object-cover"
                       />
                     ) : (
@@ -165,14 +171,14 @@ export function Navbar() {
                       </div>
                     )}
                     <div>
-                      <div className="text-sm font-bold">{session.user.name}</div>
+                      <div className="text-sm font-bold">{user.name}</div>
                       <div className="text-xs text-muted-foreground capitalize">
-                        {session.user.role?.toLowerCase()}
+                        {user.role?.toLowerCase()}
                       </div>
                     </div>
                   </div>
                   <Link
-                    href={session.user.role === "ADMIN" ? "/admin" : "/student"}
+                    href={user.role === "ADMIN" ? "/admin" : "/student"}
                     onClick={() => setIsOpen(false)}
                     className="w-full"
                   >

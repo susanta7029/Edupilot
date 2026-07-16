@@ -12,14 +12,12 @@ import {
   FileText, 
   Menu, 
   X,
-  User,
   Settings,
   HelpCircle,
   Award,
   Sparkles,
   Layers,
-  Video,
-  UserCheck
+  Video
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -28,6 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: session } = useSession();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const user = session?.user ?? null;
 
   const adminLinks = [
     { label: "Dashboard", href: "/admin", icon: <BarChart3 className="h-5 w-5" /> },
@@ -55,61 +54,111 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
       </div>
 
-      {/* Sidebar Navigation */}
+      {/* Mobile Sidebar Panel (Conditionally rendered, animated, client-only) */}
       <AnimatePresence>
-        {(sidebarOpen || (typeof window !== "undefined" && window.innerWidth >= 768)) && (
-          <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={cn(
-              "fixed inset-y-16 left-0 z-30 flex w-64 flex-col border-r bg-background/90 backdrop-blur-md px-4 py-6 dark:border-slate-800 md:sticky md:h-[calc(100vh-4rem)] md:z-10",
-              sidebarOpen ? "block" : "hidden md:flex"
-            )}
-          >
-            <nav className="flex-1 space-y-1.5 text-left overflow-y-auto pr-1 scrollbar-thin">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-4 mb-2 block">
-                Control deck
-              </span>
-              {adminLinks.map((link) => {
-                const isActive = pathname === link.href || (link.href !== "/admin" && pathname.startsWith(link.href));
-                return (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200",
-                      isActive
-                        ? "bg-primary/10 text-primary dark:bg-primary/25"
-                        : "text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-foreground"
-                    )}
-                  >
-                    {link.icon}
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
+        {sidebarOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+              className="fixed inset-0 z-30 bg-black md:hidden"
+            />
+            
+            <motion.aside
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed inset-y-16 left-0 z-30 flex w-64 flex-col border-r bg-background/90 backdrop-blur-md px-4 py-6 dark:border-slate-800 md:hidden"
+            >
+              <nav className="flex-1 space-y-1.5 text-left overflow-y-auto pr-1 scrollbar-thin">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-4 mb-2 block">
+                  Control deck
+                </span>
+                {adminLinks.map((link) => {
+                  const isActive = pathname === link.href || (link.href !== "/admin" && pathname.startsWith(link.href));
+                  return (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200",
+                        isActive
+                          ? "bg-primary/10 text-primary dark:bg-primary/25"
+                          : "text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-foreground"
+                      )}
+                    >
+                      {link.icon}
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
 
-            {/* Profile display */}
-            {session?.user && (
-              <div className="mt-auto border-t pt-4 dark:border-slate-800 flex items-center gap-3 shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold shrink-0">
-                  A
+              {/* Profile display */}
+              {user && (
+                <div className="mt-auto border-t pt-4 dark:border-slate-800 flex items-center gap-3 shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold shrink-0">
+                    A
+                  </div>
+                  <div className="flex flex-col text-left truncate">
+                    <span className="text-sm font-bold truncate leading-none">{user.name}</span>
+                    <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1.5">
+                      {user.role || "ADMIN"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col text-left truncate">
-                  <span className="text-sm font-bold truncate leading-none">{session.user.name}</span>
-                  <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1.5">
-                    {session.user.role}
-                  </span>
-                </div>
-              </div>
-            )}
-          </motion.aside>
+              )}
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
+
+      {/* Desktop Sidebar Panel (Unconditionally rendered, hidden on mobile via CSS) */}
+      <aside className="hidden md:flex w-64 flex-col border-r bg-background/90 backdrop-blur-md px-4 py-6 dark:border-slate-800 sticky h-[calc(100vh-4rem)] top-16 z-10">
+        <nav className="flex-1 space-y-1.5 text-left overflow-y-auto pr-1 scrollbar-thin">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-4 mb-2 block">
+            Control deck
+          </span>
+          {adminLinks.map((link) => {
+            const isActive = pathname === link.href || (link.href !== "/admin" && pathname.startsWith(link.href));
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={cn(
+                  "flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200",
+                  isActive
+                    ? "bg-primary/10 text-primary dark:bg-primary/25"
+                    : "text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-foreground"
+                )}
+              >
+                {link.icon}
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Profile display */}
+        {session?.user && (
+          <div className="mt-auto border-t pt-4 dark:border-slate-800 flex items-center gap-3 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold shrink-0">
+              A
+            </div>
+            <div className="flex flex-col text-left truncate">
+              <span className="text-sm font-bold truncate leading-none">{user.name}</span>
+              <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1.5">
+                {user.role || "ADMIN"}
+              </span>
+            </div>
+          </div>
+        )}
+      </aside>
 
       {/* Main Content Pane */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">

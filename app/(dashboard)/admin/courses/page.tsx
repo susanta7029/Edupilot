@@ -332,7 +332,7 @@ export default function ManageCourses() {
 
                   <div className="flex items-center justify-between text-[11px] pt-1 text-muted-foreground/80">
                     <span>{course._count.lessons} Lessons</span>
-                    <span>{course.enrolledCount} Students Enrolled</span>
+                    <span>{course.enrolledCount ?? 0} Students Enrolled</span>
                   </div>
                 </div>
               </div>

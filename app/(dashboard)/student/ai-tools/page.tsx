@@ -211,7 +211,8 @@ function AiToolsContent() {
         const json = await res.json();
         setChatMessages((prev) => [...prev, { role: "model", content: json.response }]);
       } else {
-        toast("Failed to connect to AI server", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to connect to AI server", "error");
       }
     } catch (err) {
       toast("Connection timeout", "error");
@@ -244,7 +245,8 @@ function AiToolsContent() {
         setQuizQuestions(json);
         toast("Quiz deck compiled!", "success");
       } else {
-        toast("Failed to compile quiz", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to compile quiz", "error");
       }
     } catch (err) {
       toast("Error connecting to generator", "error");
@@ -308,7 +310,8 @@ function AiToolsContent() {
         setSavedRoadmaps((prev) => [json, ...prev]);
         toast("Skill Roadmap built and saved!", "success");
       } else {
-        toast("Failed to compile roadmap", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to compile roadmap", "error");
       }
     } catch (e) {
       toast("Error reaching planner", "error");
@@ -350,7 +353,8 @@ function AiToolsContent() {
         const json = await res.json();
         setSummarizerResult(json.summary);
       } else {
-        toast("Failed to summarize notes", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to summarize notes", "error");
       }
     } catch (e) {
       toast("Server connection timeout", "error");
@@ -380,7 +384,8 @@ function AiToolsContent() {
         setFlashcards(json);
         toast("Flashcards deck ready!", "success");
       } else {
-        toast("Failed to generate deck", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to generate deck", "error");
       }
     } catch (e) {
       toast("Error creating flashcards", "error");
@@ -410,7 +415,8 @@ function AiToolsContent() {
         setCareerResult(json);
         toast("Career path recommendations generated!", "success");
       } else {
-        toast("Failed to analyze career trajectory", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to analyze career trajectory", "error");
       }
     } catch (e) {
       toast("Error checking career outlooks", "error");
@@ -437,7 +443,8 @@ function AiToolsContent() {
         const json = await res.json();
         setDoubtSolution(json.solution);
       } else {
-        toast("Failed to solve doubt", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to solve doubt", "error");
       }
     } catch (e) {
       toast("Error connecting to tutor", "error");
@@ -464,7 +471,8 @@ function AiToolsContent() {
         const json = await res.json();
         setCodeExplanation(json.explanation);
       } else {
-        toast("Failed to explain snippet", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to explain snippet", "error");
       }
     } catch (e) {
       toast("Error checking syntax parser", "error");
@@ -493,7 +501,8 @@ function AiToolsContent() {
         setInterviewQuestions(json);
         toast("Technical prep list generated!", "success");
       } else {
-        toast("Failed to compile questions", "error");
+        const errData = await res.json().catch(() => ({}));
+        toast(errData.error || "Failed to compile questions", "error");
       }
     } catch (e) {
       toast("Error checking review database", "error");
